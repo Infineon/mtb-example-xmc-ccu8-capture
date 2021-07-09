@@ -2,16 +2,9 @@
 
 This code example demonstrates the capture feature of  Capture and Compare unit (CCU8) slices available in XMC™ MCU.
 
-The code example uses two CCU8 slices of the XMC MCU:
-
-1. One slice configured as a PWM generator. The generated signal has a frequency of 2 Hz and 50% duty cycle.
-
-2. One slice configured in capture mode. It will capture the timer value on the rising and falling edges of the generated PWM.
-
-
 ## Requirements
 
-- [ModusToolbox® software](https://www.cypress.com/products/modustoolbox-software-environment) v2.3
+- [ModusToolbox&trade; software](https://www.cypress.com/products/modustoolbox-software-environment) v2.3
 - [SEGGER J-Link software](https://www.segger.com/downloads/jlink/#J-LinkSoftwareAndDocumentationPack)
 - Programming Language: C
 - Associated Parts: All [XMC™ MCU](https://www.infineon.com/cms/en/product/microcontroller/32-bit-industrial-microcontroller-based-on-arm-cortex-m/) parts
@@ -107,13 +100,13 @@ Various CLI tools include a `-h` option that prints help information to the term
 
    2. In the **Quick Panel**, scroll down, and click **\<Application Name> Program (JLink)**.
 
-3. Confirm that log messages appear as follows and the PWM output is available on the LED present on the kit.
+3. Confirm that log messages appear as follows and the LED present on the kit blinks.
 
    PWM Output GPIO Pins
 
-   - XMC1400 boot kit - P4.0
+   - XMC1400 Boot Kit - P4.0
 
-   - XMC4700 Rexax kit - P5.8
+   - XMC4700 Relax Kit - P5.8
 
    **Figure 1. Log Messages**
 
@@ -122,6 +115,10 @@ Various CLI tools include a `-h` option that prints help information to the term
 ## Debugging
 
 You can debug the example to step through the code. In the IDE, use the **\<Application Name> Debug (JLink)** configuration in the **Quick Panel**. For more details, see the "Program and Debug" section in the [Eclipse IDE for ModusToolbox User Guide](https://www.cypress.com/MTBEclipseIDEUserGuide).
+
+## Design and Implementation
+
+This example shows how the CCU8 peripheral of the XMC MCU works.  It consists of two slices: the first slice is configured to generate a PWM output signal. This signal is used in the second slice, which captures the timer value at every rising edge and falling edge of the capture trigger signal. In addition, two source events to capture the signal are defined. 'Event 0'  triggers a capture on the rising edge; 'Event 1'  triggers a capture on the falling edge. These two events are continuously monitored in the `main` function to detect and show the captured value and reset the events.
 
 ## Related Resources
 
@@ -154,13 +151,14 @@ Document Title: *CE232587* - *XMC MCU: CCU8 Capture*
 | Version | Description of Change |
 | ------- | --------------------- |
 | 1.0.0   | New code example      |
+| 1.0.1   | Updated README        |
 ------
 
 All other trademarks or registered trademarks referenced herein are the property of their respective owners.
 
 ![banner](images/ifx_logo_rgb.jpg)
 
-© 2021 Infineon Technologies AG
+© 2020-2021 Infineon Technologies AG
 
 All Rights Reserved.
 
