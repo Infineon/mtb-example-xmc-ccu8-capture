@@ -40,9 +40,6 @@
 #include "cybsp.h"
 #include "cy_utils.h"
 #include "cy_retarget_io.h"
-#include "xmc_ccu8.h"
-#include "xmc_scu.h"
-
 
 /*******************************************************************************
 * Macros
@@ -50,34 +47,6 @@
 
 #define CAPTURE_VALUE_EVENT0                    1
 #define CAPTURE_VALUE_EVENT1                    3
-#define TIMER_PERIOD_VALUE                      65500U
-#define PWM_COMPARE_VALUE                       32750U
-
-#if (UC_SERIES == XMC14)
-#define CCU8_MODULE_PTR                         CCU81
-#define PWM_SLICE                               CCU81_CC81
-#define CAPTURE_SLICE                           CCU81_CC80
-#define MODULE_NUMBER                           (1U)
-#define PWM_SLICE_NUMBER                        (1U)
-#define CAPTURE_SLICE_NUMBER                    (0U)
-#define PWM_OUTPUT_PORT                         (XMC_GPIO_PORT_t *) PORT4_BASE
-#define PWM_OUTPUT_PIN                          0U
-#define PWM_SHADOW_TRANSFER_MASK                XMC_CCU8_SHADOW_TRANSFER_SLICE_1
-#define CAPTURE_SHADOW_TRANSFER_MASK            XMC_CCU8_SHADOW_TRANSFER_SLICE_0
-#endif
-
-#if (UC_SERIES == XMC47)
-#define CCU8_MODULE_PTR                         CCU80
-#define PWM_SLICE                               CCU80_CC80
-#define CAPTURE_SLICE                           CCU80_CC81
-#define MODULE_NUMBER                           (0U)
-#define PWM_SLICE_NUMBER                        (0U)
-#define CAPTURE_SLICE_NUMBER                    (1U)
-#define PWM_OUTPUT_PORT                         (XMC_GPIO_PORT_t *) PORT5_BASE
-#define PWM_OUTPUT_PIN                          8U
-#define PWM_SHADOW_TRANSFER_MASK                XMC_CCU8_SHADOW_TRANSFER_SLICE_0
-#define CAPTURE_SHADOW_TRANSFER_MASK            XMC_CCU8_SHADOW_TRANSFER_SLICE_1
-#endif
 
 /* Define macro to enable/disable printing of debug messages */
 #define ENABLE_XMC_DEBUG_PRINT (0)
@@ -85,117 +54,6 @@
 /* Define macro to set the loop count before printing debug messages */
 #if ENABLE_XMC_DEBUG_PRINT
 #define DEBUG_LOOP_COUNT_MAX                    2
-#endif
-
-/*******************************************************************************
-* Global Data
-*******************************************************************************/
-/*
- * CCU8 slice configuration to generate PWM output
- */
-const XMC_CCU8_SLICE_COMPARE_CONFIG_t ccu80_slice_pwm_config =
-{
-  .timer_mode          = XMC_CCU8_SLICE_TIMER_COUNT_MODE_EA,                  /* Select edge aligned mode of operation */
-  .monoshot            = XMC_CCU8_SLICE_TIMER_REPEAT_MODE_REPEAT,             /* Select continuous mode of operation */
-  .shadow_xfer_clear   = false,                                               /* Select PR and CR shadow xfer happen when timer is cleared */
-  .dither_timer_period = false,                                               /* Dithering not enabled */
-  .dither_duty_cycle   = false,                                               /* Dithering not enabled */
-  .prescaler_mode      = XMC_CCU8_SLICE_PRESCALER_MODE_NORMAL,                /* Set prescaler mode to normal */
-  .mcm_ch1_enable      = false,                                               /* Multi channel mode disabled for channel 1 */
-  .mcm_ch2_enable      = false,                                               /* Multi channel mode disabled for channel 2 */
-  .slice_status        = XMC_CCU8_SLICE_STATUS_CHANNEL_1,                     /* Set the source for CCU8 slice status to channel 1 */
-  .passive_level_out0  = XMC_CCU8_SLICE_OUTPUT_PASSIVE_LEVEL_LOW,             /* Set passive level for CCU8 output (out0) to LOW */
-  .passive_level_out1  = XMC_CCU8_SLICE_OUTPUT_PASSIVE_LEVEL_LOW,             /* Set passive level for CCU8 output (out1) to LOW */
-  .passive_level_out2  = XMC_CCU8_SLICE_OUTPUT_PASSIVE_LEVEL_LOW,             /* Set passive level for CCU8 output (out2) to LOW */
-  .passive_level_out3  = XMC_CCU8_SLICE_OUTPUT_PASSIVE_LEVEL_LOW,             /* Set passive level for CCU8 output (out3) to LOW */
-  .asymmetric_pwm      = false,                                               /* Configuring CCU8 slice for symmetric PWM operation */
-#if !defined(CCU8V3)
-    .invert_out0       = false,                                               /* CCU8 status directly connected to out0 */
-    .invert_out1       = true,                                                /* CCU8 status inverted and connected to out1 */
-    .invert_out2       = false,                                               /* CCU8 status directly connected to out2 */
-    .invert_out3       = true,                                                /* CCU8 status inverted and connected to out3 */
-#else
-  .selector_out0       = XMC_CCU8_SOURCE_OUT0_ST1,                            /* CCU8 status directly connected to out0 */
-  .selector_out1       = XMC_CCU8_SOURCE_OUT1_INV_ST1,                        /* CCU8 status inverted and connected to out1 */
-  .selector_out2       = XMC_CCU8_SOURCE_OUT2_ST2,                            /* CCU8 status directly connected to out2 */
-  .selector_out3       = XMC_CCU8_SOURCE_OUT3_INV_ST2,                        /* CCU8 status inverted and connected to out3 */
-#endif
-  .prescaler_initval   = XMC_CCU8_SLICE_PRESCALER_2048,                       /* Set prescaler initial value to 1 */
-  .float_limit         = 0U,                                                  /* Setting float limit to 0 */
-  .dither_limit        = 0U,                                                  /* Dithering not enabled */
-  .timer_concatenation = false                                                /* Timer concatenation disabled */
-};
-/*
- * CCU8 slice configuration for capture functionality
- */
-const XMC_CCU8_SLICE_CAPTURE_CONFIG_t  ccu80_slice_capture_config     =
-{
-  .fifo_enable           = false,                                              /* Disable FIFO */
-  .timer_clear_mode      = XMC_CCU8_SLICE_TIMER_CLEAR_MODE_NEVER,              /* Do not clear timer on any capture event */
-  .same_event            = false,                                              /* Using differnt events for capture */
-  .ignore_full_flag      = false,                                              /* Ignore full flag */
-  .prescaler_mode        = XMC_CCU8_SLICE_PRESCALER_MODE_NORMAL,               /* Set prescaler mode to normal */
-  .prescaler_initval     = XMC_CCU8_SLICE_PRESCALER_1,                         /* Setting prescaler initial value */
-  .float_limit           = XMC_CCU8_SLICE_PRESCALER_32768,                     /* The max value which the prescaler divider can increment to */
-  .timer_concatenation   = false
-};
-
-#if (UC_SERIES == XMC14)
-const XMC_GPIO_CONFIG_t  ccu8_pwm_gpio_config    =
-{
-   .mode                = XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT8,                  /* Select alternate mode 8 to connect to ccu8 output */
-   .output_level        = XMC_GPIO_OUTPUT_LEVEL_LOW,                            /* Set initial gpio output level to LOW */
-   .input_hysteresis    = XMC_GPIO_INPUT_HYSTERESIS_STANDARD                    /* Set input hysteresis to standard */
-};
-#endif
-
-#if (UC_SERIES == XMC47)
-const XMC_GPIO_CONFIG_t  ccu8_pwm_gpio_config    =
-{
-   .mode                = XMC_GPIO_MODE_OUTPUT_PUSH_PULL_ALT3,                  /* Select alternate mode 3 to connect to ccu8 output */
-   .output_level        = XMC_GPIO_OUTPUT_LEVEL_LOW,                            /* Set initial gpio output level to LOW */
-   .output_strength     = XMC_GPIO_OUTPUT_STRENGTH_MEDIUM                       /* Set output drive strength to medium */
-};
-#endif
-
-#if (UC_SERIES == XMC14)
-const XMC_CCU8_SLICE_EVENT_CONFIG_t CCU8_SLICE_capture_event0_config =
-{
-  .mapped_input        = XMC_CCU8_SLICE_INPUT_AN,                               /* Select event source for capture event 0 */
-  .edge                = XMC_CCU8_SLICE_EVENT_EDGE_SENSITIVITY_RISING_EDGE,     /* Configure event 0 to trigger capture on rising edge */
-  .level               = XMC_CCU8_SLICE_EVENT_LEVEL_SENSITIVITY_ACTIVE_HIGH,    /* Setting event sensitivity to HIGH */
-  .duration            = XMC_CCU8_SLICE_EVENT_FILTER_DISABLED                   /* Disable event filter */
- };
-#endif
-
-#if (UC_SERIES == XMC47)
-const XMC_CCU8_SLICE_EVENT_CONFIG_t CCU8_SLICE_capture_event0_config =
-{
-  .mapped_input        = XMC_CCU8_SLICE_INPUT_M,                                /* Select event source for capture event 0 */
-  .edge                = XMC_CCU8_SLICE_EVENT_EDGE_SENSITIVITY_RISING_EDGE,     /* Configure event 0 to trigger capture on rising edge */
-  .level               = XMC_CCU8_SLICE_EVENT_LEVEL_SENSITIVITY_ACTIVE_HIGH,    /* Setting event sensitivity to HIGH */
-  .duration            = XMC_CCU8_SLICE_EVENT_FILTER_DISABLED                   /* Disable event filter */
- };
-#endif
-
-#if (UC_SERIES == XMC14)
-const XMC_CCU8_SLICE_EVENT_CONFIG_t CCU8_SLICE_capture_event1_config =
-{
-  .mapped_input        = XMC_CCU8_SLICE_INPUT_AN,                               /* Select event source for capture event 1 */
-  .edge                = XMC_CCU8_SLICE_EVENT_EDGE_SENSITIVITY_FALLING_EDGE,    /* Configure event 1 to trigger capture on falling edge */
-  .level               = XMC_CCU8_SLICE_EVENT_LEVEL_SENSITIVITY_ACTIVE_LOW,     /* Setting event sensitivity to LOW */
-  .duration            = XMC_CCU8_SLICE_EVENT_FILTER_DISABLED                   /* Disable event filter */
- };
-#endif
-
-#if (UC_SERIES == XMC47)
-const XMC_CCU8_SLICE_EVENT_CONFIG_t CCU8_SLICE_capture_event1_config =
-{
-  .mapped_input        = XMC_CCU8_SLICE_INPUT_M,                                /* Select event source for capture event 1 */
-  .edge                = XMC_CCU8_SLICE_EVENT_EDGE_SENSITIVITY_FALLING_EDGE,    /* Configure event 1 to trigger capture on falling edge */
-  .level               = XMC_CCU8_SLICE_EVENT_LEVEL_SENSITIVITY_ACTIVE_LOW,     /* Setting event sensitivity to LOW */
-  .duration            = XMC_CCU8_SLICE_EVENT_FILTER_DISABLED                   /* Disable event filter */
- };
 #endif
 
 /*******************************************************************************
@@ -246,67 +104,22 @@ int main(void)
     printf("Initialization done\r\n");
     #endif
 
-    /* Initialize CCU8 module */
-    XMC_CCU8_Init(CCU8_MODULE_PTR, XMC_CCU8_SLICE_MCMS_ACTION_TRANSFER_PR_CR);
-
-    /* Ensure fccu clock reaches CCU8 */
-    XMC_CCU8_SetModuleClock(CCU8_MODULE_PTR, XMC_CCU8_CLOCK_SCU);
-
-    /* Start the prescaler and restore clocks to slices */
-    XMC_CCU8_StartPrescaler(CCU8_MODULE_PTR);
-
-    /* Initialize the Slices */
-    XMC_CCU8_SLICE_CompareInit(PWM_SLICE, &ccu80_slice_pwm_config);
-    XMC_CCU8_SLICE_CaptureInit(CAPTURE_SLICE, &ccu80_slice_capture_config);
-
-    /* Configure events for capture slice */
-    XMC_CCU8_SLICE_ConfigureEvent(CAPTURE_SLICE, XMC_CCU8_SLICE_EVENT_0, &CCU8_SLICE_capture_event0_config);
-    XMC_CCU8_SLICE_ConfigureEvent(CAPTURE_SLICE, XMC_CCU8_SLICE_EVENT_1, &CCU8_SLICE_capture_event1_config);
-    XMC_CCU8_SLICE_Capture0Config(CAPTURE_SLICE, XMC_CCU8_SLICE_EVENT_0);
-    XMC_CCU8_SLICE_Capture1Config(CAPTURE_SLICE, XMC_CCU8_SLICE_EVENT_1);
-
-    /* Configure GPIO output for PWM output */
-    XMC_GPIO_Init(PWM_OUTPUT_PORT, PWM_OUTPUT_PIN, &ccu8_pwm_gpio_config);
-
-    /* Program timer period for both ccu8 slices */
-    XMC_CCU8_SLICE_SetTimerPeriodMatch(PWM_SLICE, TIMER_PERIOD_VALUE);
-    XMC_CCU8_SLICE_SetTimerPeriodMatch(CAPTURE_SLICE, TIMER_PERIOD_VALUE);
-
-    /* Program compare match value for PWM slice */
-    XMC_CCU8_SLICE_SetTimerCompareMatch(PWM_SLICE, XMC_CCU8_SLICE_COMPARE_CHANNEL_1, PWM_COMPARE_VALUE);
-
-    /* Enable shadow transfer for both Capture and PWM slices */
-    XMC_CCU8_EnableShadowTransfer(CCU8_MODULE_PTR, PWM_SHADOW_TRANSFER_MASK);
-    XMC_CCU8_EnableShadowTransfer(CCU8_MODULE_PTR, CAPTURE_SHADOW_TRANSFER_MASK);
-
-    /* Set initial value for Capture slice */
-    XMC_CCU8_SLICE_SetTimerValue(CAPTURE_SLICE, (uint16_t)0U);
-    XMC_CCU8_SLICE_SetTimerValue(PWM_SLICE, (uint16_t)0U);
-
-    /* Get the slices out of idle mode */
-    XMC_CCU8_EnableClock(CCU8_MODULE_PTR, PWM_SLICE_NUMBER);
-    XMC_CCU8_EnableClock(CCU8_MODULE_PTR, CAPTURE_SLICE_NUMBER);
-
-    /* Start timers */
-    XMC_CCU8_SLICE_StartTimer(CAPTURE_SLICE);
-    XMC_CCU8_SLICE_StartTimer(PWM_SLICE);
-
     for (;;)
     {
         /* Continuously poll for Capture events 0 and 1 */
-        if(XMC_CCU8_SLICE_GetEvent(CAPTURE_SLICE, XMC_CCU8_SLICE_IRQ_ID_EVENT0))
+        if(XMC_CCU8_SLICE_GetEvent(CAPTURE_SLICE_HW, XMC_CCU8_SLICE_IRQ_ID_EVENT0))
         {
-            XMC_CCU8_SLICE_ClearEvent(CAPTURE_SLICE, XMC_CCU8_SLICE_IRQ_ID_EVENT0);
-            captureVal = XMC_CCU8_SLICE_GetCaptureRegisterValue(CAPTURE_SLICE, CAPTURE_VALUE_EVENT0);
+            XMC_CCU8_SLICE_ClearEvent(CAPTURE_SLICE_HW, XMC_CCU8_SLICE_IRQ_ID_EVENT0);
+            captureVal = XMC_CCU8_SLICE_GetCaptureRegisterValue(CAPTURE_SLICE_HW, CAPTURE_VALUE_EVENT0);
             #if !(ENABLE_XMC_DEBUG_PRINT)
             printf("Rising edge:%d\r\n", captureVal);
             #endif
         }
 
-        if(XMC_CCU8_SLICE_GetEvent(CAPTURE_SLICE, XMC_CCU8_SLICE_IRQ_ID_EVENT1))
+        if(XMC_CCU8_SLICE_GetEvent(CAPTURE_SLICE_HW, XMC_CCU8_SLICE_IRQ_ID_EVENT1))
         {
-            XMC_CCU8_SLICE_ClearEvent(CAPTURE_SLICE, XMC_CCU8_SLICE_IRQ_ID_EVENT1);
-            captureVal = XMC_CCU8_SLICE_GetCaptureRegisterValue(CAPTURE_SLICE, CAPTURE_VALUE_EVENT1);
+            XMC_CCU8_SLICE_ClearEvent(CAPTURE_SLICE_HW, XMC_CCU8_SLICE_IRQ_ID_EVENT1);
+            captureVal = XMC_CCU8_SLICE_GetCaptureRegisterValue(CAPTURE_SLICE_HW, CAPTURE_VALUE_EVENT1);
             #if !(ENABLE_XMC_DEBUG_PRINT)
             printf("Falling edge:%d\r\n", captureVal);
             #endif
