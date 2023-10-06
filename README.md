@@ -9,7 +9,7 @@ The code example uses two CCU8 slices of the XMC&trade; MCU:
 
 [View this README on GitHub.](https://github.com/Infineon/mtb-example-xmc-ccu8-capture)
 
-[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzI1ODciLCJTcGVjIE51bWJlciI6IjAwMi0zMjU4NyIsIkRvYyBUaXRsZSI6IlhNQyZ0cmFkZTsgTUNVOiBDQ1U4IGNhcHR1cmUiLCJyaWQiOiJib29wYWxhbXNyaW4iLCJEb2MgdmVyc2lvbiI6IjIuMS4wIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJOL0EifQ==)
+[Provide feedback on this code example.](https://cypress.co1.qualtrics.com/jfe/form/SV_1NTns53sK2yiljn?Q_EED=eyJVbmlxdWUgRG9jIElkIjoiQ0UyMzI1ODciLCJTcGVjIE51bWJlciI6IjAwMi0zMjU4NyIsIkRvYyBUaXRsZSI6IlhNQyZ0cmFkZTsgTUNVOiBDQ1U4IGNhcHR1cmUiLCJyaWQiOiJob3Nha290ZW5hZ2EiLCJEb2MgdmVyc2lvbiI6IjIuMS4xIiwiRG9jIExhbmd1YWdlIjoiRW5nbGlzaCIsIkRvYyBEaXZpc2lvbiI6Ik1DRCIsIkRvYyBCVSI6IklDVyIsIkRvYyBGYW1pbHkiOiJOL0EifQ==)
 
 ## Requirements
 
@@ -21,8 +21,6 @@ The code example uses two CCU8 slices of the XMC&trade; MCU:
 ## Supported toolchains (make variable 'TOOLCHAIN')
 
 - GNU Arm® embedded compiler v10.3.1 (`GCC_ARM`) - Default value of `TOOLCHAIN`
-- Arm&reg; compiler v6.16 (`ARM`)
-- IAR C/C++ compiler v9.30.1 (`IAR`)
 
 ## Supported kits (make variable 'TARGET')
 
@@ -217,6 +215,7 @@ Document title: *CE232587* - *XMC&trade; MCU: CCU8 capture*
  1.1.0   | Added support for more kits
  2.0.0   | Updated to support ModusToolbox™ software v3.0; CE will not be backwards compatible with previous versions of ModusToolbox™ software
  2.1.0   | Added support for new kits and CCU8 personality
+| 2.1.1   | Updated README        |
 ------
 
 All other trademarks or registered trademarks referenced herein are the property of their respective owners.
